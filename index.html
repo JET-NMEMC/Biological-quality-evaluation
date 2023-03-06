@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div>未检出应以"ND"表示</div><br>
+    <button onclick='run()'>run</button><br><br>
+    <textarea id="intput" style="width: 1000px; height: 300px;"></textarea><br>
+    <textarea id="output" style="width: 1000px; height: 300px;"></textarea>
+    <script>
+        // 定义数表的数据结构
+        var standardTable = [
+            ['种类', '铜', '铅', '锌', '镉', '总汞', '铬', '砷', '石油烃'],
+            ['鱼类', 20, 2, 40, 0.6, 0.3, 1.5, 5, 20],
+            ['甲壳类', 100, 2, 150, 2, 0.2, 1.5, 8, 20],
+            ['软体类', 100, 10, 250, 5.5, 0.3, 5.5, 10, 20],
+            ['贝类（一类）', 10, 0.1, 20, 0.2, 0.05, 0.5, 1, 15],
+            ['贝类（二类）', 25, 2, 50, 2, 0.1, 2, 5, 50],
+            ['贝类（三类）', 50, 6, 100, 5, 0.3, 6, 8, 80],
+            ['牡蛎（三类）', 100, 6, 500, 5, 0.3, 6, 8, 80]
+        ];
+        var sampleTable = [
+            ['种类', '铜', '铅', '锌', '镉', '总汞', '铬', '砷', '石油烃'],
+            ['检出限', 0.4, 0.04, 0.4, 0.005, 0.006, 0.04, 0.01, 0.2],
+            ['鱼类', 20, 2, 40, 0.6, 0.3, 1.5, 5, 20],
+            ['甲壳类', 100, 2, 150, 2, 0.2, 1.5, 8, 20],
+            ['软体类', 100, 10, 250, 5.5, 0.3, 5.5, 10, 20],
+            ['贝类（一类）', 10, 0.1, 20, 0.2, 0.05, 0.5, 1, 15],
+            ['贝类（二类）', 25, 2, 50, 2, 0.1, 2, 5, 50],
+            ['贝类（三类）', 50, 6, 100, 5, 0.3, 6, 8, 80],
+            ['牡蛎（三类）', 100, 6, 500, 5, 0.3, 6, 8, 80]
+        ];
+
+        displayTable(sampleTable, 'intput');
+        // 主程序
+        function run() {
+            document.getElementById('output').value='';
+            var dataTable = text2arr("intput");
+            replaceWithRatio(dataTable, standardTable);
+            console.log(dataTable);
+            displayTable(dataTable, 'output');
+        }
+
+        // 将文本数据解析为二维数组
+        function text2arr(id) {
+            var text = document.getElementById(id).value;
+            var dataArray = text.trim().split('\n').map(function (row) {
+                return row.split('\t');
+            });
+            return dataArray
+        }
+
+
+
+        // 定义函数，用于检索某个物种的某个监测要素的值
+        function getValue(speciesName, factorName) {
+            var speciesIndex = standardTable.findIndex(row => row[0] === speciesName);
+            var factorIndex = standardTable[0].indexOf(factorName);
+            // return standardTable[speciesIndex][factorIndex];
+
+            if (speciesIndex != -1 && factorIndex != -1) {
+                return standardTable[speciesIndex][factorIndex];
+            } else {
+                if (speciesIndex == -1) { return "speciesName not found" };
+                if (factorIndex == -1) { return "factorName not found" };
+            }
+        }
+
+        // 定义函数，用于将监测值替换为比值
+        function replaceWithRatio(dataTable, standardTable) {
+            for (var i = 2; i < dataTable.length; i++) {
+                for (var j = 1; j < dataTable[0].length; j++) {
+                    var speciesName = dataTable[i][0];
+                    var factorName = dataTable[0][j];
+                    var standardValue = getValue(speciesName, factorName, standardTable);
+                    if (standardValue == "speciesName not found") { console.log(speciesName, 'rows:', i, ", speciesName not found") };
+                    if (standardValue == "factorName not found") { console.log(factorName, 'cols:', j, ", factorName not found") };
+
+                    var measuredValue = dataTable[i][j];
+                    if (measuredValue == "ND") { measuredValue = dataTable[1][j] };
+                    dataTable[i][j] = (measuredValue / standardValue).toFixed(4);
+                }
+            }
+        }
+
+        // 定义函数，用于在网页的文本框中显示表格
+        function displayTable(tableData, id) {
+            var output = '';
+            for (var i = 0; i < tableData.length; i++) {
+                output += tableData[i].join('\t') + '\n';
+            }
+            document.getElementById(id).value = output;
+        }
+
+
+
+    </script>
+</body>
+
+</html>
